@@ -6,8 +6,8 @@ my_interface_name = "docker0"
 proc_path = "/proc/net/dev"
 traffic_file_path = "traffic.pickle"
 
-MAX_NUM_OF_DATA = 1500
-MOVING_AVG_LEN = 5
+MAX_NUM_OF_DATA = 1000
+MOVING_AVG_LEN = 2
 
 def get_inbps():
     bytes = get_byte()

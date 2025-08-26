@@ -1,38 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
-import pickle
-import os
 from sklearn.preprocessing import MinMaxScaler
 
-traffic_file_path = "traffic.pickle"
+from data_processing import *
+from utils import *
 
-def load_traffic_file():
-    if os.path.exists(traffic_file_path):
-        with open(traffic_file_path, "rb") as f:
-            traffic = pickle.load(f) 
-        
-    return np.array(traffic)
-
-def get_sin_data():
-    x = np.linspace(0, np.pi * 5, num_of_training_data + num_of_prediction_data)
-    
-    return np.sin(x) 
-
-
-#### hyper parameter
-epoch=10
-input_len=5
-num_of_prediction_data = 10
-num_of_training_data = 30
+###### hyper parameter ######
+epoch=40
+input_len=20
+num_of_prediction_data = 20
+num_of_training_data = 60
 how_deep = 2
 
-'''
-epoch=30
-input_len=20
-num_of_prediction_data = 30
-num_of_training_data = 500
-'''
+###### variables ######
+traffic_file_path = "traffic.pickle"
+file_name = "Electric_Production.csv"
+#file_name = "weatherHistory.csv"
 
 first_traning_data_idex = 0
 last_traning_data_idex = first_traning_data_idex + num_of_training_data - 1
@@ -40,14 +24,17 @@ first_prediction_data_idex = last_traning_data_idex + 1
 last_prediction_data_idex = first_prediction_data_idex + num_of_prediction_data - 1
 
 ################## fetch data ##################
-
-traffic = get_sin_data()
+#traffic = get_sin_data(num_of_training_data, num_of_prediction_data)
 #traffic = load_traffic_file()
+traffic = get_data(file_name, 1, 1)
 
 ################## data preprocessing ##################
+traffic = split_data(traffic, 6)
+traffic = shrink_min_max(traffic, 1)
+traffic = fill_data(traffic, 1)
+traffic = np.array(traffic)
 
 ###### normalization ######
-
 traffic = traffic.reshape(-1, 1)
 scaler = MinMaxScaler()
 traffic_scaled = scaler.fit_transform(traffic)
@@ -55,7 +42,6 @@ traffic = traffic_scaled.flatten()
 traffic_predict = copy.deepcopy(traffic)
 
 ###### create sliding window data ######
-
 buf=[]
 x_train=[]
 y_train=[]
@@ -80,13 +66,11 @@ x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 model = Sequential()
-#model.add(LSTM(7, input_shape = (input_len, 1), activation ='relu'))
-model.add(LSTM(64, input_shape = (input_len, 1), activation ='tanh'))
+model.add(LSTM(64, input_shape = (input_len, 1), activation ='relu')) # tanh relu
 for i in range(0, how_deep):
     model.add(Dense(32))
 model.add(Dense(1))
 model.summary()
-
 
 ################## training ##################
 model.compile(loss='mse', optimizer='adam', metrics=['mse'])
@@ -105,8 +89,8 @@ for i in range(first_prediction_data_idex - input_len, last_prediction_data_idex
     traffic_predict[i + input_len] = y_predict[0][0]
    
 ################## data post-processing ##################
-traffic_predict = traffic_predict[first_traning_data_idex:last_prediction_data_idex + 1]
-traffic = traffic[first_traning_data_idex:last_prediction_data_idex + 1]
+traffic_predict_debug = traffic_predict
+traffic_predict = traffic_predict[first_prediction_data_idex:last_prediction_data_idex+1]
 
 ###### inverse scaling data ######
 traffic_predict = traffic_predict.reshape(-1, 1)
@@ -117,16 +101,31 @@ traffic = traffic.reshape(-1, 1)
 traffic = scaler.inverse_transform(traffic)
 traffic = traffic.flatten()
 
+traffic_predict_debug = traffic_predict_debug.reshape(-1, 1)
+traffic_predict_debug = scaler.inverse_transform(traffic_predict_debug)
+traffic_predict_debug = traffic_predict_debug.flatten()
+
 ###### plot ######
 time = []
-for i in range(0,len(traffic)):
+for i in range(0, len(traffic)):
     time.append(i)
+time_predict = time[first_prediction_data_idex:last_prediction_data_idex+1]
 
 plt.plot(history.history["loss"])
 plt.show()
 
-plt.plot(time, traffic_predict, linestyle = 'dotted', color = 'red')
-plt.plot(time, traffic, color = 'gray', alpha=0.3, label="real value")
-plt.axvline(x=last_traning_data_idex, color="blue", linestyle="--", alpha=0.3)
+plt.figure(figsize=(10, 7))
+plt.plot(time_predict, traffic_predict, marker='o', ms=3, color = 'red', label="prediction")
+plt.plot(time, traffic, color = 'gray', marker='o', ms=3, label="real value")   # linestyle = 'dotted', alpha=0.3,
+#plt.plot(time, traffic_predict_debug, color = 'green', alpha=0.3, label="real value")   # linestyle = 'dotted'
+
+plt.axvline(x=first_traning_data_idex, color="orange", linestyle="--", alpha=0.5, label="first training data")
+plt.axvline(x=last_traning_data_idex, color="blue", linestyle="--", alpha=0.3, label="last training data")
+plt.axvline(x=first_prediction_data_idex, color="green", linestyle="--", alpha=0.3, label="first prediction")
+plt.axvline(x=last_prediction_data_idex, color="magenta", linestyle="--", alpha=0.3, label="last prediction")
+
+plt.title("Time Series Data")
+plt.xlabel("Time")
+plt.ylabel("Electric Production")
 plt.legend()
 plt.show()

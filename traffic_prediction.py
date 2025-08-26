@@ -90,16 +90,27 @@ for i in range(first_prediction_data_idex - input_len, last_prediction_data_idex
    
 ################## data post-processing ##################
 traffic_predict_debug = traffic_predict
-traffic_predict = traffic_predict[first_prediction_data_idex:last_prediction_data_idex+1]
+traffic_predict = traffic_predict[first_prediction_data_idex: last_prediction_data_idex + 1]
+traffic_train = traffic[first_traning_data_idex: last_traning_data_idex + 1]
+traffic_real = traffic[first_prediction_data_idex: last_prediction_data_idex + 1]
+traffic_for_continous_plot = traffic[last_traning_data_idex : first_prediction_data_idex + 1]
 
 ###### inverse scaling data ######
 traffic_predict = traffic_predict.reshape(-1, 1)
 traffic_predict = scaler.inverse_transform(traffic_predict)
 traffic_predict = traffic_predict.flatten()
 
-traffic = traffic.reshape(-1, 1)
-traffic = scaler.inverse_transform(traffic)
-traffic = traffic.flatten()
+traffic_train = traffic_train.reshape(-1, 1)
+traffic_train = scaler.inverse_transform(traffic_train)
+traffic_train = traffic_train.flatten()
+
+traffic_real = traffic_real.reshape(-1, 1)
+traffic_real = scaler.inverse_transform(traffic_real)
+traffic_real = traffic_real.flatten()
+
+traffic_for_continous_plot = traffic_for_continous_plot.reshape(-1, 1)
+traffic_for_continous_plot = scaler.inverse_transform(traffic_for_continous_plot)
+traffic_for_continous_plot = traffic_for_continous_plot.flatten()
 
 traffic_predict_debug = traffic_predict_debug.reshape(-1, 1)
 traffic_predict_debug = scaler.inverse_transform(traffic_predict_debug)
@@ -109,22 +120,27 @@ traffic_predict_debug = traffic_predict_debug.flatten()
 time = []
 for i in range(0, len(traffic)):
     time.append(i)
-time_predict = time[first_prediction_data_idex:last_prediction_data_idex+1]
+time_predict = time[first_prediction_data_idex : last_prediction_data_idex + 1]
+time_train = time[first_traning_data_idex : last_traning_data_idex + 1]
+time_real = time[first_prediction_data_idex:last_prediction_data_idex+1]
+time_for_continous_plot = time[last_traning_data_idex : first_prediction_data_idex + 1]
 
 plt.plot(history.history["loss"])
 plt.show()
 
 plt.figure(figsize=(10, 7))
 plt.plot(time_predict, traffic_predict, marker='o', ms=3, color = 'red', label="prediction")
-plt.plot(time, traffic, color = 'gray', marker='o', ms=3, label="real value")   # linestyle = 'dotted', alpha=0.3,
+plt.plot(time_train, traffic_train, color = 'gray', marker='o', ms=3, label="training data")
+plt.plot(time_for_continous_plot, traffic_for_continous_plot, color = 'gray')
+plt.plot(time_real, traffic_real, color = 'orange', marker='o', ms=3, label="real value")   # linestyle = 'dotted', alpha=0.3,
 #plt.plot(time, traffic_predict_debug, color = 'green', alpha=0.3, label="real value")   # linestyle = 'dotted'
 
-plt.axvline(x=first_traning_data_idex, color="orange", linestyle="--", alpha=0.5, label="first training data")
-plt.axvline(x=last_traning_data_idex, color="blue", linestyle="--", alpha=0.3, label="last training data")
-plt.axvline(x=first_prediction_data_idex, color="green", linestyle="--", alpha=0.3, label="first prediction")
+'''
+# vertical line
 plt.axvline(x=last_prediction_data_idex, color="magenta", linestyle="--", alpha=0.3, label="last prediction")
+'''
 
-plt.title("Time Series Data")
+plt.title("Time Series Forcasting")
 plt.xlabel("Time")
 plt.ylabel("Electric Production")
 plt.legend()

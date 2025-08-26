@@ -15,7 +15,7 @@ def split_data(data, n=1):
     k = int(len(data) / n)
     return data[:k]
   
-def fill_data(data, how_many_times=1):
+def smooth_curve(data, how_many_times=1):
     for n in range(how_many_times):
         smoothed_data = []
         for i in data:

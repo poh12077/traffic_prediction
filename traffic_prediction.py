@@ -9,9 +9,9 @@ from utils import *
 ###### hyper parameter ######
 epoch=40
 input_len=20
-num_of_prediction_data = 20
-num_of_training_data = 60
-how_deep = 2
+num_of_prediction_data = 60
+num_of_training_data = 120
+how_deep = 3
 
 ###### variables ######
 traffic_file_path = "traffic.pickle"
@@ -29,9 +29,7 @@ last_prediction_data_idex = first_prediction_data_idex + num_of_prediction_data 
 traffic = get_data(file_name, 1, 1)
 
 ################## data preprocessing ##################
-traffic = split_data(traffic, 6)
-traffic = shrink_min_max(traffic, 1)
-traffic = fill_data(traffic, 1)
+traffic = smooth_curve(traffic, 2)
 traffic = np.array(traffic)
 
 ###### normalization ######

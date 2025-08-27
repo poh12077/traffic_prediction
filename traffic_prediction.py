@@ -7,14 +7,15 @@ from data_processing import *
 from utils import *
 
 ###### hyper parameter ######
-epoch=40
+epoch=350
 input_len=20
-num_of_prediction_data = 60
-num_of_training_data = 120
-how_deep = 3
+num_of_prediction_data = 400
+num_of_training_data = 1000
+batch_size = 8
+depth = 1
 
 ###### variables ######
-traffic_file_path = "traffic.pickle"
+#traffic_file_path = "traffic.pickle"
 file_name = "Electric_Production.csv"
 #file_name = "weatherHistory.csv"
 
@@ -63,16 +64,20 @@ x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 ################## model build-up ##################
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
+
 model = Sequential()
-model.add(LSTM(64, input_shape = (input_len, 1), activation ='relu')) # tanh relu
-for i in range(0, how_deep):
-    model.add(Dense(32))
+model.add(LSTM(64, input_shape = (input_len, 1), activation='tanh', recurrent_activation='sigmoid' ))
+for i in range(0, depth):
+    model.add(Dense(32)) # tanh relu linear
 model.add(Dense(1))
 model.summary()
 
 ################## training ##################
+from keras.callbacks import EarlyStopping
+
+early_stopping = EarlyStopping(patience=5, min_delta=1e-4, restore_best_weights=True)
 model.compile(loss='mse', optimizer='adam', metrics=['mse'])
-history = model.fit(x_train, y_train, epochs=epoch, batch_size=1)
+history = model.fit(x_train, y_train, epochs=epoch, batch_size=batch_size, validation_split=0.2, callbacks=[early_stopping])
 
 ################## prediction ##################
 x_predict = []
@@ -123,15 +128,14 @@ time_train = time[first_traning_data_idex : last_traning_data_idex + 1]
 time_real = time[first_prediction_data_idex:last_prediction_data_idex+1]
 time_for_continous_plot = time[last_traning_data_idex : first_prediction_data_idex + 1]
 
-plt.plot(history.history["loss"])
-plt.show()
-
 plt.figure(figsize=(10, 7))
-plt.plot(time_predict, traffic_predict, marker='o', ms=3, color = 'red', label="prediction")
+plt.plot(time_predict, traffic_predict, marker='o', ms=3, color = 'blue', label="prediction")
 plt.plot(time_train, traffic_train, color = 'gray', marker='o', ms=3, label="training data")
 plt.plot(time_for_continous_plot, traffic_for_continous_plot, color = 'gray')
 plt.plot(time_real, traffic_real, color = 'orange', marker='o', ms=3, label="real value")   # linestyle = 'dotted', alpha=0.3,
 #plt.plot(time, traffic_predict_debug, color = 'green', alpha=0.3, label="real value")   # linestyle = 'dotted'
+
+plt.axhline(y=120, color='red', linestyle="--", alpha=0.5, label="Warning level")
 
 '''
 # vertical line
@@ -142,4 +146,7 @@ plt.title("Time Series Forcasting")
 plt.xlabel("Time")
 plt.ylabel("Electric Production")
 plt.legend()
+plt.show()
+
+plt.plot(history.history["loss"])
 plt.show()

@@ -10,6 +10,6 @@ def load_traffic_file(file):
     return traffic
 
 def get_sin_data(num_of_training_data, num_of_prediction_data):
-    x = np.linspace(0, np.pi * 5, num_of_training_data + num_of_prediction_data)
+    x = np.linspace(0, np.pi * (num_of_training_data + num_of_prediction_data ) / 25, num_of_training_data + num_of_prediction_data)
     
     return np.sin(x) 

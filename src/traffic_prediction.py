@@ -15,9 +15,9 @@ batch_size = 8
 depth = 1
 
 ###### variables ######
-#traffic_file_path = "traffic.pickle"
-file_name = "Electric_Production.csv"
-#file_name = "weatherHistory.csv"
+repo_path = "/home/yh/work/dev/ai"
+file_name = "/data/Electric_Production.csv"
+file_path = repo_path + file_name
 
 first_traning_data_idex = 0
 last_traning_data_idex = first_traning_data_idex + num_of_training_data - 1
@@ -26,8 +26,7 @@ last_prediction_data_idex = first_prediction_data_idex + num_of_prediction_data 
 
 ################## fetch data ##################
 #traffic = get_sin_data(num_of_training_data, num_of_prediction_data)
-#traffic = load_traffic_file()
-traffic = get_data(file_name, 1, 1)
+traffic = get_data(file_path, 1, 1)
 
 ################## data preprocessing ##################
 traffic = smooth_curve(traffic, 2)
